@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="postal-test-suite.xml" />
+	<munit:test name="postal-test-suite-usecaFlowTest" doc:id="a82855b9-65de-45c8-9b85-4355080addc1" description="Test">
+		<munit:behavior >
+			<set-payload value="#[attributes.queryParams.postalCode]" doc:name="Set Payload" doc:id="0f08e78c-4be7-4cd4-bc13-0b4f8618249f" />
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to usecaFlow" doc:id="e5944bbd-9e3e-40bd-a6e7-3a60aac6f170" name="usecaFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="d1e70abc-7ef5-49f0-a9ae-4bd1d373c01d" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

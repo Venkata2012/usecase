@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="TransformationFlow" doc:id="7646ac7b-5cd9-467c-9a1e-c29cd30d33ed" >
+		<ee:transform doc:name="Transform Message" doc:id="f7ce18c5-6b8a-484b-8cf8-9e6724cf6a59" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="ff0d3084-a168-4dfa-9848-9b04e8e832a4" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload.data.storesBySearchTerm.stores map ( store , indexOfStore ) -> {
+				store_distance: store.distance,
+				store_id: store.id,
+				store_name: store.displayName,
+				storeType: store.storeType,
+				store_address: store.address.address ++ store.address.city ++ store.address.state ++ store.address.country ++  "(" ++ store.address.postalCode ++ ")",
+				operationalHours: store.operationalHours,
+				geoPoint: store.geoPoint,
+				timeZone: store.timeZone}]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[insert into Delivery_Details(store_id,store_name,store_distance,store_address) values(:store_id, :store_name, :store_distance, :store_address)]]></db:sql>
+		</db:bulk-insert>
+		<set-payload value='#["Database updated successfully"]' doc:name="Set Payload" doc:id="fab97668-0a0c-49d7-ba31-7b3bb5f9a9ac" />
+		<logger level="INFO" doc:name="Logger" doc:id="e01d0d60-b5ac-4d6c-b7dc-552bca721cc1" message='#["End of Transaction"]'/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a1825d87-d918-4d0d-933b-3fe4444cf3ec" >
+				<set-payload value='#["Transformation error"]' doc:name="Set Payload" doc:id="a1e26c6d-35f1-4afd-a275-709eeb1fb4ec" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

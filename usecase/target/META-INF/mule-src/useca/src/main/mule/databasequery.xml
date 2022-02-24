@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="databasequeryFlow" doc:id="980afe4c-9008-4796-a448-937cc2bf528a" >
+		<http:listener doc:name="Listener" doc:id="fc0238bb-c36a-45cc-9cc5-58a8be8e6878" config-ref="HTTP_Listener_config" path="/usecase2"/>
+		<db:select doc:name="Select" doc:id="e5ba50c1-6697-4946-a6e4-c6c38e75d166" config-ref="Database_Config">
+			<db:sql ><![CDATA[select *from Delivery_Details where store_id = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'ID': attributes.queryParams.'id'}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="a4e29286-b707-4a63-9ba0-5d1df0328137" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

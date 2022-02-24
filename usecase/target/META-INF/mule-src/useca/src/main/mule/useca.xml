@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6e7ae14f-bbd0-4be5-9f99-fa35605e77fd" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="17ae9075-6b16-451e-b5c4-0208f0e92e9e" >
+		<db:my-sql-connection host="${dbconnection.hostname}" port="${dbconnection.port}" user="${dbconnection.username}" password="${dbconnection.password}" database="${dbconnection.dbname}" />
+	</db:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="24e006fd-cada-4778-8345-886267354d10" >
+		<http:request-connection host="${httprequest.hostname}" protocol="HTTPS"/>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="c8fac49a-6d38-41a9-ae95-5a8a181d2caa" file="dev-config.yaml" />
+	<flow name="usecaFlow" doc:id="916dd117-626c-4720-8d7e-effc8888968e" >
+		<http:listener doc:name="Listener" doc:id="3e4f63d0-2605-4c03-bb84-38c31cd40a37" path="/useca1" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="20acc3f3-d7f9-49d2-9b3f-6d53150fd79f" message='"Start"'/>
+		<set-variable value="#[attributes.queryParams.postalCode]" doc:name="Set Variable" doc:id="aa320457-c6ff-4f54-853a-51cf6098531b" variableName="postalCode"/>
+		<http:request method="GET" doc:name="Request" doc:id="aae55d43-538a-48fc-96f2-8ea42da85359" path="${httprequest.path}" config-ref="HTTP_Request_configuration">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"X-Rapidapi-Key" : "3023a67861msh0eb707c9fd31682p12e9c9jsn4bd95787f3d4"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	postalCode : vars.postalCode
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="98f1e737-fa42-43ea-b42c-6d18409ff27b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload
+	
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="81ad6161-ca00-485c-a9cc-febbba3128d2" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload.data.storesBySearchTerm.stores map ( store , indexOfStore ) -> {
+				store_distance: store.distance,
+				store_id: store.id,
+				store_name: store.displayName,
+				storeType: store.storeType,
+				store_address: store.address.address ++ store.address.city ++ store.address.state ++ store.address.country ++  "(" ++ store.address.postalCode ++ ")",
+				operationalHours: store.operationalHours,
+				geoPoint: store.geoPoint,
+				timeZone: store.timeZone}]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[insert into Delivery_Details(store_id,store_name,store_distance,store_address) values(:store_id, :store_name, :store_distance, :store_address)]]></db:sql>
+		</db:bulk-insert>
+		<logger level="INFO" doc:name="Logger" doc:id="667f522d-5013-43f1-9928-a797c17a0968" message='#[{"MESSAGE": "Successfully updated",&#10;	"CODE": "200"&#10;}]'/>
+	</flow>
+</mule>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="new-test-suite.xml" />
+	<munit:test name="new-test-suite-databasequeryFlowTest" doc:id="335593ec-89dc-40c7-883b-e08ae9a6c9f8" description="Test">
+		<munit:behavior >
+			<set-payload value="#[id: '2105']" doc:name="Set Payload" doc:id="1c8c07f1-307e-46ce-a6a1-351516c46c7b" mimeType="text/json"/>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to databasequeryFlow" doc:id="15b969ec-eadc-4b28-a39a-662b543438bc" name="databasequeryFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="1fcf6077-d201-433b-bf63-0d460424646c" is="#[MunitTools::notNullValue()]" message='#["Please Provide right postal code"]' expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

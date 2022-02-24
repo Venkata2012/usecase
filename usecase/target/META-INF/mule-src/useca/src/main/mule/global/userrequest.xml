@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="userrequestFlow" doc:id="05b41e60-86bc-432b-8cc4-dc971580dfc1" >
+		<http:listener doc:name="Listener" doc:id="bb8555e7-ac82-42d9-bf36-364f5eeedaa6" config-ref="HTTP_Listener_config" path="/postalcode"/>
+		<logger level="INFO" doc:name="Logger" doc:id="47b7186f-8b18-428b-89e0-09cfca2ab57e" message='#["Start of Transaction"]'/>
+		<set-variable value="#[attributes.queryParams.postalCode]" doc:name="Set Variable" doc:id="4b531ff7-cdec-49f7-b965-57b55757c787" variableName="postalCode"/>
+		<http:request method="GET" doc:name="Request" doc:id="c6eb5c78-ef45-4588-9ca6-c12e518336d2" config-ref="HTTP_Request_configuration" path="${httprequest.path}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"X-Rapidapi-Key" : "3023a67861msh0eb707c9fd31682p12e9c9jsn4bd95787f3d4"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	postalCode : vars.postalCode
+}]]]></http:query-params>
+		</http:request>
+		<flow-ref doc:name="Flow Reference" doc:id="c4ddb492-e818-4261-b766-459ea967d64b" name="TransformationFlow"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="61b5baf3-dbb8-458b-ade6-ee0df5ffcc4b" >
+				<set-payload value='#["Database or Transformation error"]' doc:name="Set Payload" doc:id="01200cdf-fea1-44c9-b8be-f73ebdb2b8a8" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
